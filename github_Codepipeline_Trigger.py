@@ -52,9 +52,6 @@ def lambda_handler(event, context):
     s3 = boto3.resource('s3')
     with open(f'/tmp/{name}', 'w') as outfile:
         
-        #json.dump(event, outfile)
-        #outfile.write(json.dumps(event.get('body'), indent=4, sort_keys=True))
-        
         json_body = json.loads(event.get('body'))
         outfile.write(json.dumps(json_body, indent=4, sort_keys=True))
         s3.meta.client.upload_file(f'/tmp/{name}', 'ads-shared-artifacts', name)
@@ -63,23 +60,23 @@ def lambda_handler(event, context):
     print(repo_name)
     branch_name = json_body.get("ref").split('/')[-1]
     
-    account_number = "954746638540"
+    account_number = "12345678911"
     
     if branch_name == 'master':
         branch_name = 'dev'
     
     if branch_name == 'dev':
-        account_number = "261851226434"
+        account_number = "12345678911"
     elif branch_name == 'prod':
-        account_number = "954746638540"
+        account_number = "12345678922"
     elif branch_name == 'stage':
-        account_number = "675865906212" 
+        account_number = "12345678933"
     elif branch_name == 'uat':
-        account_number = "766263179337"     
+        account_number = "12345678944"     
     
     sts_client = boto3.client('sts')
     assumed_role_object=sts_client.assume_role(
-        RoleArn=f"arn:aws:iam::{account_number}:role/terraform-member-account-admin-role",
+        RoleArn=f"arn:aws:iam::{account_number}:role/assume_role",
         RoleSessionName="AssumeRoleSession1"
     )
     
