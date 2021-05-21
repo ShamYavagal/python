@@ -1,0 +1,145 @@
+{
+  "StartAt": "Event-Start",
+  "States": {
+    "Failed": {
+      "Type": "Pass",
+      "Next": "EndState"
+    },
+    "Event-Start": {
+      "Resource": "arn:aws:lambda:us-east-1:123456789:function:GuardDuty_Remediation",
+      "ResultPath": "$.GuardDuty_Remediation_Return",
+      "TimeoutSeconds": 86400,
+      "HeartbeatSeconds": 60,
+      "Next": "Event-Type",
+      "Type": "Task",
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "States.ALL"
+          ],
+          "IntervalSeconds": 10,
+          "MaxAttempts": 5,
+          "BackoffRate": 2
+        }
+      ],
+      "Catch": [
+        {
+          "ErrorEquals": [
+            "States.ALL"
+          ],
+          "Next": "Failed",
+          "ResultPath": "$.CreateImage.error"
+        }
+      ]
+    },
+    "Event-Type": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Variable": "$.GuardDuty_Remediation_Return",
+          "StringEquals": "Trogan",
+          "Next": "Trogan_Remediate"
+        },
+        {
+          "Variable": "$.GuardDuty_Remediation_Return",
+          "StringEquals": "UnauthorizedAccess",
+          "Next": "Unauthorized_Remediate"
+        },
+        {
+          "Variable": "$.GuardDuty_Remediation_Return",
+          "StringEquals": "Stealth",
+          "Next": "Stealth_Remediate"
+        }
+      ],
+      "Default": "EndState"
+    },
+    "Trogan_Remediate": {
+      "Resource": "arn:aws:lambda:us-east-1:123456789:function:GuardDuty_Trogan",
+      "ResultPath": "$.GuardDuty_Trogan_Return",
+      "InputPath": "$",
+      "TimeoutSeconds": 86400,
+      "HeartbeatSeconds": 60,
+      "Next": "EndState",
+      "Type": "Task",
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "States.ALL"
+          ],
+          "IntervalSeconds": 10,
+          "MaxAttempts": 5,
+          "BackoffRate": 2
+        }
+      ],
+      "Catch": [
+        {
+          "ErrorEquals": [
+            "States.ALL"
+          ],
+          "Next": "Failed",
+          "ResultPath": "$.TroganRemediateFailed.error"
+        }
+      ]
+    },
+    "Unauthorized_Remediate": {
+      "Resource": "arn:aws:lambda:us-east-1:809783523789:function:GuardDuty_Unauthorized",
+      "ResultPath": "$.GuardDuty_Unauthorized_Return",
+      "InputPath": "$",
+      "TimeoutSeconds": 86400,
+      "HeartbeatSeconds": 60,
+      "Next": "EndState",
+      "Type": "Task",
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "States.ALL"
+          ],
+          "IntervalSeconds": 10,
+          "MaxAttempts": 5,
+          "BackoffRate": 2
+        }
+      ],
+      "Catch": [
+        {
+          "ErrorEquals": [
+            "States.ALL"
+          ],
+          "Next": "Failed",
+          "ResultPath": "$.UnauthorizedRemediateFailed.error"
+        }
+      ]
+    },
+    "Stealth_Remediate": {
+      "Resource": "arn:aws:lambda:us-east-1:809783523789:function:GuardDuty_Stealth",
+      "ResultPath": "$.GuardDuty_Stealth_Return",
+      "InputPath": "$",
+      "TimeoutSeconds": 86400,
+      "HeartbeatSeconds": 60,
+      "Next": "EndState",
+      "Type": "Task",
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "States.ALL"
+          ],
+          "IntervalSeconds": 10,
+          "MaxAttempts": 5,
+          "BackoffRate": 2
+        }
+      ],
+      "Catch": [
+        {
+          "ErrorEquals": [
+            "States.ALL"
+          ],
+          "Next": "Failed",
+          "ResultPath": "$.StealthRemediateFailed.error"
+        }
+      ]
+    },
+    "EndState": {
+      "End": true,
+      "Type": "Pass"
+    }
+  }
+}
